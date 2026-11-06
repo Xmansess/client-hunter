@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Client Hunter setup (same as: python3 setup.py). Works on macOS, Linux and Git Bash on Windows.
+DIR="$(cd "$(dirname "$0")" && pwd)"
+if command -v python3 >/dev/null 2>&1; then exec python3 "$DIR/setup.py" "$@"; fi
+if command -v python >/dev/null 2>&1; then exec python "$DIR/setup.py" "$@"; fi
+echo "Python 3 is required. Install it from python.org, then run this again." >&2
+exit 1

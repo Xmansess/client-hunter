@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Client Hunter Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#EDF1F4; --surface:#FFFFFF; --sunk:#E2E8ED; --ink:#14212C; --muted:#5A6B79; --line:#CDD6DE;
+  --gold:#B97F00; --gold-soft:#FFF1CC; --teal:#0E7A74; --teal-soft:#D5F0EE; --red:#B3261E; --red-soft:#FBE1DE;
+  --slate:#41576A; --slate-soft:#DDE6EE; --focus:#1F6FEB;
+  --radius-s:6px; --radius-m:12px;
+  --font:"Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0E161D; --surface:#15212B; --sunk:#1C2A36; --ink:#E6EDF3; --muted:#93A5B4; --line:#2A3B49;
+    --gold:#F2B53A; --gold-soft:#3A2D0B; --teal:#45BDB4; --teal-soft:#0F3431; --red:#F2786C; --red-soft:#3D1714;
+    --slate:#9DB3C6; --slate-soft:#22313E; --focus:#6CA8FF;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0E161D; --surface:#15212B; --sunk:#1C2A36; --ink:#E6EDF3; --muted:#93A5B4; --line:#2A3B49;
+  --gold:#F2B53A; --gold-soft:#3A2D0B; --teal:#45BDB4; --teal-soft:#0F3431; --red:#F2786C; --red-soft:#3D1714;
+  --slate:#9DB3C6; --slate-soft:#22313E; --focus:#6CA8FF;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:inherit}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0 10px}
+.brand{font-stretch:125%;font-weight:850;font-size:clamp(20px,4.2vw,28px);letter-spacing:-0.01em;line-height:1}
+.brand small{display:block;font-stretch:90%;font-weight:450;font-size:13px;color:var(--muted);margin-top:4px;letter-spacing:0}
+.stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.stat{font-stretch:80%;font-size:13px;padding:4px 8px;border-radius:999px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.stat b{color:var(--ink);font-weight:700}
+nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{border:0;background:transparent;padding:8px 12px;border-radius:var(--radius-s);font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+nav .count{font-stretch:75%;font-weight:700;margin-left:4px}
+
+main{padding:16px 0 48px}
+.note{padding:10px 12px;border-radius:var(--radius-s);background:var(--sunk);color:var(--muted);font-size:14px;margin-bottom:12px}
+.note.warn{background:var(--gold-soft);color:var(--ink)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.seg{display:inline-flex;background:var(--sunk);border-radius:var(--radius-s);padding:3px}
+.seg button{border:0;background:transparent;padding:6px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:var(--muted);font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.search{flex:1 1 180px;min-width:150px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface)}
+
+.list{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:10px 12px 10px 10px;cursor:pointer;text-align:left;width:100%}
+.row:hover{border-color:var(--slate)}
+.tier{font-stretch:125%;font-weight:900;font-size:44px;line-height:1;text-align:center;border-radius:8px;padding:6px 0 4px}
+.tier.A{color:var(--gold);background:var(--gold-soft)}
+.tier.B{color:var(--teal);background:var(--teal-soft)}
+.tier.C{color:var(--slate);background:var(--slate-soft)}
+.row h3{margin:0 0 3px;font-size:15px;font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{font-stretch:82%;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px}
+.pill{font-stretch:80%;font-size:12px;font-weight:700;padding:2px 7px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.pill.pass{background:var(--teal-soft);color:var(--teal)}
+.pill.caution{background:var(--gold-soft);color:var(--gold)}
+.pill.block,.pill.scam{background:var(--red-soft);color:var(--red)}
+.pill.rec{background:var(--gold-soft);color:var(--gold)}
+.btn.rec{border-color:var(--gold);background:var(--gold-soft);color:var(--ink)}
+.score{font-stretch:75%;font-weight:800;font-size:20px;text-align:right}
+.score small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.empty{padding:36px 18px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--radius-m)}
+.empty strong{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+
+.sheet-back{position:fixed;inset:0;background:rgba(10,16,22,.42);z-index:20;display:none}
+.sheet{position:fixed;z-index:21;background:var(--surface);overflow:auto;display:none;
+  right:0;top:0;bottom:0;width:min(560px,100%);border-left:1px solid var(--line);
+  padding:calc(16px + env(safe-area-inset-top,0px)) 18px calc(28px + env(safe-area-inset-bottom,0px))}
+.open .sheet-back,.open .sheet{display:block}
+@media (max-width:700px){
+  .sheet{top:auto;left:0;width:100%;max-height:92%;border-left:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;padding-top:16px}
+}
+.sheet-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.sheet-head .tier{font-size:52px;min-width:66px}
+.sheet h2{margin:0;font-size:18px;line-height:1.3}
+.close{margin-left:auto;border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-s);padding:6px 10px;cursor:pointer;font-weight:600}
+.sec{margin:14px 0}
+.sec h4{margin:0 0 6px;font-size:13px;font-weight:700;color:var(--muted);font-stretch:90%}
+.why{font-size:15px}
+.excerpt{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.bars{display:grid;grid-template-columns:96px 1fr 34px;gap:6px 8px;align-items:center;font-size:13px}
+.bar{height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--slate)}
+.flags{display:flex;flex-wrap:wrap;gap:6px}
+ul.check{margin:0;padding-left:18px}
+.draft{border:1px solid var(--line);border-radius:var(--radius-m);overflow:hidden;margin-bottom:10px}
+.draft-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--sunk);font-weight:650;font-size:14px}
+.draft pre{margin:0;padding:10px 12px;white-space:pre-wrap;word-wrap:break-word;font-family:var(--font);font-size:14px;line-height:1.5}
+.draft details{border-top:1px solid var(--line);padding:8px 12px;font-size:13px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-s);padding:7px 11px;cursor:pointer;font-weight:650;font-size:14px}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn.small{padding:4px 8px;font-size:13px}
+.statusbar{display:flex;flex-wrap:wrap;gap:6px}
+.statusbar .btn[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+textarea,input[type=date],input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--surface)}
+textarea{min-height:76px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m);padding:14px;margin-bottom:10px}
+.card h3{margin:0 0 6px;font-size:16px}
+.funnel{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--sunk);margin:8px 0}
+.funnel span{display:block}
+.table{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-m)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:700}
+td.wrap{white-space:normal;min-width:220px}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:8px 14px;border-radius:999px;font-weight:600;font-size:14px;z-index:40;display:none}
+.toast.show{display:block}
+@media (max-width:520px){
+  .row{grid-template-columns:48px 1fr;}
+  .row .score{grid-column:2;text-align:left;font-size:15px}
+  .row .score small{display:inline;margin-left:6px}
+  .tier{font-size:34px}
+  .kv{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">Client Hunter<small id="subtitle">Ledger</small></div>
+      <div class="stats" id="stats"></div>
+    </div>
+    <nav role="tablist" id="tabs">
+      <button role="tab" data-view="leads" aria-selected="true">Leads<span class="count" id="c-leads"></span></button>
+      <button role="tab" data-view="decisions" aria-selected="false">Decisions<span class="count" id="c-dec"></span></button>
+      <button role="tab" data-view="runs" aria-selected="false">Runs</button>
+      <button role="tab" data-view="grounds" aria-selected="false">Grounds</button>
+      <button role="tab" data-view="profile" aria-selected="false">Profile</button>
+      <button role="tab" data-view="data" aria-selected="false">Data</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="main"><div class="note" id="loading">Loading your ledger…</div></main>
+<div id="sheetRoot"><div class="sheet-back" id="sheetBack"></div><aside class="sheet" id="sheet" aria-modal="true" role="dialog"></aside></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  "use strict";
+  var state = {db:null, user:null, downloads:null, leads:[], gates:[], runs:[], profile:null, grounds:null, phrases:null,
+    view:"leads", filter:"open", tiers:{A:true,B:true,C:false}, q:"", openId:null, ready:false, writable:true};
+  var OPEN = ["new","shortlisted","drafted"], ACTIVE = ["contacted","replied"], CLOSED = ["won","lost","skipped","scam","expired"];
+  var STATUSES = ["new","shortlisted","drafted","contacted","replied","won","lost","skipped","scam"];
+  var $ = function(id){return document.getElementById(id)};
+  var main = $("main");
+
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})}
+  function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove("show")},2200)}
+  function ago(iso){
+    if(!iso) return "date unknown";
+    var d=(Date.now()-new Date(iso).getTime())/36e5;
+    if(isNaN(d)) return "date unknown";
+    if(d<1) return "under 1 h ago"; if(d<24) return Math.round(d)+" h ago";
+    var days=Math.round(d/24); return days===1?"1 day ago":days+" days ago";
+  }
+  function langName(l){return {en:"English",ru:"Russian",es:"Spanish",hy:"Armenian"}[l]||l||""}
+  function dueFollowups(){var now=Date.now();return state.leads.filter(function(l){return l.follow_up_at&&new Date(l.follow_up_at).getTime()<=now&&ACTIVE.indexOf(l.status)>-1})}
+
+  function renderStats(){
+    var open=state.leads.filter(function(l){return OPEN.indexOf(l.status)>-1});
+    var a=open.filter(function(l){return l.tier==="A"}).length;
+    var won=state.leads.filter(function(l){return l.status==="won"}).length;
+    var html='<span class="stat"><b>'+a+'</b> open A</span><span class="stat"><b>'+open.length+'</b> open</span>';
+    var due=dueFollowups().length; if(due) html+='<span class="stat"><b>'+due+'</b> follow-ups due</span>';
+    html+='<span class="stat"><b>'+won+'</b> won</span>';
+    $("stats").innerHTML=html;
+    $("c-leads").textContent=open.length?String(open.length):"";
+    var g=state.gates.filter(function(x){return x.status==="open"}).length+state.leads.filter(function(l){return OPEN.indexOf(l.status)>-1&&(l.questions_for_user||[]).length&&!l.answers}).length;
+    $("c-dec").textContent=g?String(g):"";
+    var last=state.runs[0]; $("subtitle").textContent= last? "Last run "+ago(last.finished_at||last.started_at) : "No runs yet";
+  }
+
+  function setView(v){
+    state.view=v;
+    Array.prototype.forEach.call(document.querySelectorAll("nav button"),function(b){b.setAttribute("aria-selected",String(b.dataset.view===v))});
+    render();
+  }
+
+  function render(){
+    renderStats();
+    if(!state.ready) return;
+    var v=state.view;
+    if(v==="leads") renderLeads(); else if(v==="decisions") renderDecisions(); else if(v==="runs") renderRuns();
+    else if(v==="grounds") renderGrounds(); else if(v==="profile") renderProfile(); else renderData();
+    if(state.openId) renderSheet();
+  }
+
+  function filtered(){
+    var set = state.filter==="open"?OPEN: state.filter==="active"?ACTIVE: state.filter==="closed"?CLOSED: null;
+    var q=state.q.trim().toLowerCase();
+    return state.leads.filter(function(l){
+      if(set&&set.indexOf(l.status)<0) return false;
+      if(!state.tiers[l.tier||"C"]) return false;
+      if(q){var hay=(l.title+" "+l.community+" "+(l.why||"")+" "+(l.offer||"")).toLowerCase(); if(hay.indexOf(q)<0) return false;}
+      return true;
+    }).sort(function(a,b){
+      var t={A:0,B:1,C:2}; var d=(t[a.tier]||2)-(t[b.tier]||2); if(d) return d;
+      return (b.total||0)-(a.total||0) || String(b.found_at||"").localeCompare(String(a.found_at||""));
+    });
+  }
+
+  function renderLeads(){
+    var f=state.filter, html='<div class="toolbar"><div class="seg" role="group" aria-label="Status">';
+    [["open","Open"],["active","In talks"],["closed","Closed"],["all","All"]].forEach(function(o){html+='<button data-filter="'+o[0]+'" aria-pressed="'+(f===o[0])+'">'+o[1]+'</button>'});
+    html+='</div><div class="seg" role="group" aria-label="Tier">';
+    ["A","B","C"].forEach(function(t){html+='<button data-tier="'+t+'" aria-pressed="'+state.tiers[t]+'">'+t+'</button>'});
+    html+='</div><input class="search" id="q" type="search" placeholder="Search leads" value="'+esc(state.q)+'"></div>';
+    var due=dueFollowups(); if(due.length) html+='<div class="note warn">'+due.length+' follow-up'+(due.length>1?'s are':' is')+' due. Ask Claude for “Client Hunter follow-ups” to draft them.</div>';
+    var rows=filtered();
+    if(!state.leads.length){
+      html+='<div class="empty"><strong>No leads yet</strong>Ask Claude: “Client Hunter, run a hunt.” Leads, drafts and decisions will appear here.</div>';
+    } else if(!rows.length){
+      html+='<div class="empty"><strong>Nothing matches these filters</strong>Try another status or tier.</div>';
+    } else {
+      html+='<div class="list">';
+      rows.forEach(function(l){
+        html+='<button class="row" data-open="'+esc(l.id)+'"><div class="tier '+esc(l.tier||"C")+'">'+esc(l.tier||"C")+'</div><div><h3>'+esc(l.title||"(untitled)")+'</h3><div class="meta"><span>'+esc(l.community||l.platform)+'</span><span>'+esc(ago(l.posted_at))+'</span>'+(l.language&&l.language!=="en"?'<span>'+esc(langName(l.language))+'</span>':'')+'<span class="pill '+esc(l.verdict)+'">'+esc(l.verdict||"")+'</span>'+(l.status!=="new"?'<span class="pill">'+esc(l.status)+'</span>':'')+'</div></div><div class="score">'+(l.total!=null?esc(l.total):"")+'<small>'+esc(l.offer||"")+'</small></div></button>';
+      });
+      html+='</div>';
+    }
+    main.innerHTML=html;
+  }
+
+  function scoreBars(s){
+    if(!s) return "";
+    var max={fit:3,intent:3,budget:2,fresh:2,competition:2,reach:1,value:2}, html='<div class="bars">';
+    Object.keys(max).forEach(function(k){var v=Number(s[k]||0);html+='<span>'+k+'</span><span class="bar"><i style="width:'+Math.max(0,Math.min(100,v/max[k]*100))+'%"></i></span><span>'+v+'/'+max[k]+'</span>'});
+    return html+'</div>';
+  }
+
+  function draftBlock(name,d){
+    if(!d||!d.text) return "";
+    var label={public_reply:"Public reply",dm:"Direct message",email:"Email",cover_note:"Cover note",followup:"Follow-up"}[name]||name;
+    var h='<div class="draft"><div class="draft-head"><span>'+label+(d.lang?', '+esc(langName(d.lang)):'')+'</span><button class="btn small" data-copy="'+esc(name)+'">Copy</button></div>';
+    if(d.subject) h+='<pre><b>Subject:</b> '+esc(d.subject)+'</pre>';
+    h+='<pre>'+esc(d.text)+'</pre>';
+    if(d.translation) h+='<details><summary>Translation for checking (do not send)</summary><pre>'+esc(d.translation)+'</pre></details>';
+    return h+'</div>';
+  }
+
+  function renderSheet(){
+    var l=state.leads.find(function(x){return x.id===state.openId});
+    var sheet=$("sheet");
+    if(!l){closeSheet();return}
+    var h='<div class="sheet-head"><div class="tier '+esc(l.tier||"C")+'">'+esc(l.tier||"C")+'</div><div><h2>'+esc(l.title)+'</h2><div class="meta" style="margin-top:4px"><span>'+esc(l.community||l.platform)+'</span><span>'+esc(ago(l.posted_at))+'</span><span>'+esc(l.author?("by "+l.author):"")+'</span></div></div><button class="close" id="closeSheet">Close</button></div>';
+    h+='<p><a class="btn primary" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">Open the post</a></p>';
+    if(l.why) h+='<div class="sec"><h4>Why it’s here</h4><div class="why">'+esc(l.why)+'</div></div>';
+    if(l.angle) h+='<div class="sec"><h4>Best angle</h4><div>'+esc(l.angle)+'</div></div>';
+    if(l.excerpt) h+='<div class="sec"><h4>From the post</h4><div class="excerpt">'+esc(l.excerpt)+'</div></div>';
+    if((l.questions_for_user||[]).length){
+      h+='<div class="sec"><h4>Questions for you</h4><ul class="check">'+l.questions_for_user.map(function(q){return '<li>'+esc(q)+'</li>'}).join("")+'</ul><p class="meta">Answer these to Claude in your next hunt, or in Notes below.</p></div>';
+    }
+    h+='<div class="sec"><h4>Trust check</h4><div class="flags"><span class="pill '+esc(l.verdict)+'">'+esc(l.verdict)+'</span>'+(l.flags||[]).map(function(f){return '<span class="pill">'+esc(f)+'</span>'}).join("")+'</div>';
+    if((l.safety_checklist||[]).length) h+='<ul class="check" style="margin-top:8px">'+l.safety_checklist.map(function(c){return '<li>'+esc(c)+'</li>'}).join("")+'</ul>';
+    h+='</div>';
+    h+='<div class="sec"><h4>Score '+esc(l.total)+' of 15</h4>'+scoreBars(l.scores)+'</div>';
+    var ds=l.drafts||{}, dh=Object.keys(ds).map(function(k){return draftBlock(k,ds[k])}).join("");
+    h+='<div class="sec"><h4>Drafts</h4>'+(dh||'<div class="meta">No drafts yet. Shortlist this lead and ask Claude to draft.</div>')+'</div>';
+    h+='<div class="sec"><h4>Status</h4><div class="statusbar">'+STATUSES.map(function(s){return '<button class="btn small" data-status="'+s+'" aria-pressed="'+(l.status===s)+'"'+(state.writable?'':' disabled')+'>'+s+'</button>'}).join("")+'</div></div>';
+    h+='<div class="sec grid2"><label><h4>Follow up on</h4><input type="date" id="fu" value="'+esc((l.follow_up_at||"").slice(0,10))+'"'+(state.writable?'':' disabled')+'></label><label><h4>Deal value (USD)</h4><input type="number" id="val" min="0" step="1" value="'+esc(l.outcome_value==null?"":l.outcome_value)+'"'+(state.writable?'':' disabled')+'></label></div>';
+    h+='<div class="sec"><h4>Notes</h4><textarea id="notes" placeholder="Anything Claude should know next time"'+(state.writable?'':' disabled')+'>'+esc(l.notes||"")+'</textarea></div>';
+    sheet.innerHTML=h;
+    document.body.classList.add("open");
+  }
+  function openSheet(id){state.openId=id;renderSheet()}
+  function closeSheet(){state.openId=null;document.body.classList.remove("open");$("sheet").innerHTML=""}
+
+  function writeLead(id,patch){
+    if(!state.db) return Promise.resolve();
+    patch.updated_at=new Date().toISOString();
+    return state.db.doc("leads/"+id).update(patch).then(function(){toast("Saved")}).catch(function(e){
+      if(e&&e.code==="invalid_argument"){state.writable=false;toast("This view can’t edit the ledger");render()} else toast("Couldn’t save. Try again.");
+    });
+  }
+
+  function optLabel(o){return typeof o==="string"?o:(o&&o.label)||""}
+  function optCmd(o){return typeof o==="string"?o:(o&&o.command)||optLabel(o)}
+  function renderDecisions(){
+    var h="";
+    var open=state.gates.filter(function(g){return g.status==="open"}), picked=state.gates.filter(function(g){return g.status==="answered"});
+    var qs=state.leads.filter(function(l){return OPEN.indexOf(l.status)>-1&&(l.questions_for_user||[]).length});
+    if(!open.length&&!picked.length&&!qs.length){main.innerHTML='<div class="empty"><strong>No open decisions</strong>When a run reaches a choice, it lists the options here with one recommended, and waits for you.</div>';return}
+    if(picked.length) h+='<div class="note warn">'+picked.length+' choice'+(picked.length>1?'s are':' is')+' waiting to run. Say “Client Hunter, run my decisions”, or the next run will do it.</div>';
+    open.forEach(function(g){
+      var rec=typeof g.recommended==="number"?g.recommended:-1;
+      h+='<div class="card"><h3>'+esc(g.question)+'</h3><div class="meta" style="margin-bottom:8px"><span>'+esc(g.gate)+'</span><span>'+esc(ago(g.created_at))+'</span></div>';
+      if(g.why&&rec>-1) h+='<p style="margin:0 0 8px"><span class="pill rec">Recommended</span> '+esc(optLabel((g.options||[])[rec]))+': '+esc(g.why)+'</p>';
+      h+='<div class="statusbar">';
+      (g.options||[]).forEach(function(o,i){h+='<button class="btn small'+(i===rec?' rec':'')+'" data-gate="'+esc(g.id)+'" data-answer="'+esc(optLabel(o))+'" data-command="'+esc(optCmd(o))+'">'+esc(optLabel(o))+(i===rec?' (recommended)':'')+'</button>'});
+      h+='<button class="btn small" data-gate="'+esc(g.id)+'" data-answer="dismiss">Dismiss</button></div></div>';
+    });
+    picked.forEach(function(g){
+      h+='<div class="card"><h3>'+esc(g.question)+'</h3><p class="meta">You picked: <b>'+esc(g.answer)+'</b>. It runs when you say “Client Hunter, run my decisions” or at the start of the next run.</p></div>';
+    });
+    qs.forEach(function(l){
+      h+='<div class="card"><h3>'+esc(l.title)+'</h3><ul class="check">'+l.questions_for_user.map(function(q){return '<li>'+esc(q)+'</li>'}).join("")+'</ul><p><button class="btn small" data-open="'+esc(l.id)+'">Open lead</button></p></div>';
+    });
+    main.innerHTML=h;
+  }
+
+  function renderRuns(){
+    if(!state.runs.length){main.innerHTML='<div class="empty"><strong>No runs yet</strong>Each hunt adds a record here with its funnel and what it skipped.</div>';return}
+    var h="";
+    state.runs.forEach(function(r){
+      var f=r.funnel||{}, total=Math.max(1,(f.deduped||f.swept||0));
+      h+='<div class="card"><h3>'+esc(r.summary||r.id)+'</h3><div class="meta"><span>'+esc(r.mode)+'</span><span>'+esc(r.surface||"")+'</span><span>'+esc(ago(r.finished_at||r.started_at))+'</span></div>';
+      h+='<div class="funnel" aria-hidden="true"><span style="width:'+((f.A||0)/total*100)+'%;background:var(--gold)"></span><span style="width:'+((f.B||0)/total*100)+'%;background:var(--teal)"></span><span style="width:'+((f.C||0)/total*100)+'%;background:var(--slate)"></span><span style="width:'+((f.blocked||0)/total*100)+'%;background:var(--red)"></span></div>';
+      h+='<div class="meta"><span>Swept '+esc(f.swept||0)+'</span><span>New '+esc(f.deduped||0)+'</span><span>Passed '+esc(f.passed||0)+'</span><span>Blocked '+esc(f.blocked||0)+'</span><span>A '+esc(f.A||0)+'</span><span>B '+esc(f.B||0)+'</span><span>C '+esc(f.C||0)+'</span></div>';
+      var br=r.block_reasons||{}; var keys=Object.keys(br).sort(function(a,b){return br[b]-br[a]}).slice(0,4);
+      if(keys.length) h+='<p class="meta">Top block reasons: '+keys.map(function(k){return esc(k)+' ('+esc(br[k])+')'}).join(", ")+'</p>';
+      if((r.skipped||[]).length) h+='<p class="meta">Skipped: '+r.skipped.map(function(s){return esc(s.source)+' ('+esc(s.reason)+')'}).join(", ")+'</p>';
+      h+='</div>';
+    });
+    main.innerHTML=h;
+  }
+
+  function renderGrounds(){
+    var g=(state.grounds&&state.grounds.items)||[], p=(state.phrases&&state.phrases.items)||[];
+    var h='<div class="card"><h3>Hunting grounds</h3><p class="meta">Where the hunter looks, each place’s rules, and what it has produced.</p></div>';
+    if(!g.length) h+='<div class="empty"><strong>No grounds yet</strong>The first hunt validates and saves them here.</div>';
+    else{
+      h+='<div class="table"><table><thead><tr><th>Ground</th><th>Language</th><th>Status</th><th>Self-promo</th><th>DMs</th><th>Swept</th><th>A</th><th>B</th><th>Won</th></tr></thead><tbody>';
+      g.forEach(function(x){var y=x.yield||{},r=x.rules||{};h+='<tr><td>'+esc(x.name)+'</td><td>'+esc(x.language)+'</td><td>'+esc(x.status)+'</td><td>'+esc(r.self_promo||"")+'</td><td>'+esc(r.dm||"")+'</td><td>'+esc(y.swept||0)+'</td><td>'+esc(y.A||0)+'</td><td>'+esc(y.B||0)+'</td><td>'+esc(y.won||0)+'</td></tr>'});
+      h+='</tbody></table></div>';
+    }
+    if(p.length){
+      h+='<div class="card" style="margin-top:12px"><h3>Phrases that work</h3><div class="table"><table><thead><tr><th>Phrase</th><th>Language</th><th>Weight</th><th>A-leads</th></tr></thead><tbody>';
+      p.slice().sort(function(a,b){return (b.weight||0)-(a.weight||0)}).slice(0,40).forEach(function(x){h+='<tr><td class="wrap">'+esc(x.phrase)+'</td><td>'+esc(x.lang)+'</td><td>'+esc(x.weight)+'</td><td>'+esc(x.A||0)+'</td></tr>'});
+      h+='</tbody></table></div></div>';
+    }
+    main.innerHTML=h;
+  }
+
+  function renderProfile(){
+    var p=state.profile;
+    if(!p){main.innerHTML='<div class="empty"><strong>No profile yet</strong>Ask Claude: “Set up Client Hunter.” It will interview you and save your offers here.</div>';return}
+    var per=p.person||{}, h='<div class="card"><h3>'+esc(per.name||"You")+'</h3><dl class="kv"><dt>Based in</dt><dd>'+esc(per.based_in||"")+'</dd><dt>Work mode</dt><dd>'+esc(per.work_mode||"")+'</dd><dt>Hunt languages</dt><dd>'+esc(((p.languages||{}).hunt||[]).map(langName).join(", "))+'</dd><dt>Checking translations</dt><dd>'+esc(Object.keys((p.languages||{}).check_translations||{}).map(function(k){return langName(k)+' drafts into '+langName(p.languages.check_translations[k])}).join('; ')||'none')+'</dd><dt>Minimum budget</dt><dd>'+esc(p.min_budget_usd!=null?("USD "+p.min_budget_usd):"")+'</dd><dt>Red lines</dt><dd>'+esc((p.red_lines||[]).join(", "))+'</dd><dt>Voice</dt><dd>'+esc(((p.style||{}).tone)||"")+'</dd></dl></div>';
+    (p.offers||[]).forEach(function(o){
+      h+='<div class="card"><h3>'+esc(o.name)+(o.active===false?' (paused)':'')+'</h3><p>'+esc(o.what||"")+'</p><dl class="kv"><dt>For</dt><dd>'+esc((o.for_whom||[]).join(", "))+'</dd><dt>Not for</dt><dd>'+esc((o.not_for||[]).join(", "))+'</dd><dt>Price</dt><dd>'+esc(o.price?((o.price.currency||"")+" "+(o.price.min_project||"")+" minimum"+(o.price.typical?", "+o.price.typical:"")):"")+'</dd><dt>Proof</dt><dd>'+esc((o.proof||[]).join("; "))+'</dd></dl></div>';
+    });
+    h+='<p class="meta">Version '+esc(p.version)+', updated '+esc(ago(p.updated_at))+'. To change it, tell Claude what changed.</p>';
+    main.innerHTML=h;
+  }
+
+  function renderData(){
+    var h='<div class="card"><h3>Export</h3><p class="meta">Download everything as one JSON file, for backup or to use the ledger in Claude Code.</p><button class="btn primary" id="exportBtn">Export JSON</button></div>';
+    h+='<div class="card"><h3>Import</h3><p class="meta">Bring in an export from Claude Code (<code>export.json</code>) or a backup. Existing leads with the same ID are updated.</p><input type="file" id="importFile" accept="application/json,.json"'+(state.writable?'':' disabled')+'><p class="meta">Or paste JSON:</p><textarea id="importText" placeholder="{ &quot;format&quot;: &quot;client-hunter-ledger&quot;, … }"'+(state.writable?'':' disabled')+'></textarea><p><button class="btn" id="importBtn"'+(state.writable?'':' disabled')+'>Import pasted JSON</button></p><div id="importOut" class="meta"></div></div>';
+    h+='<div class="card"><h3>What’s stored</h3><dl class="kv"><dt>Leads</dt><dd>'+state.leads.length+'</dd><dt>Runs</dt><dd>'+state.runs.length+'</dd><dt>Open decisions</dt><dd>'+state.gates.length+'</dd></dl><p class="meta">This page is private to you unless you share it. Full post texts and account histories are never stored here, only short excerpts and verdicts.</p></div>';
+    main.innerHTML=h;
+  }
+
+  function collectExport(){
+    var db=state.db;
+    var out={format:"client-hunter-ledger",version:1,exported_at:new Date().toISOString(),leads:state.leads,runs:state.runs,gates:state.gates,config:{},seen:{}};
+    return Promise.all(["profile","grounds","phrases","learned_flags"].map(function(k){return db.doc("config/"+k).get().then(function(s){if(s.exists) out.config[k]=s.data()})}))
+      .then(function(){return db.collection("seen").get()}).then(function(snap){snap.docs.forEach(function(d){out.seen[d.id]=d.data()});return out});
+  }
+  function doExport(){
+    if(!state.db) return;
+    collectExport().then(function(out){
+      var text=JSON.stringify(out,null,2);
+      var finish=function(){var ta=document.getElementById("importText"); if(ta){ta.value=text;ta.focus();ta.select()} toast("Export ready in the text box; copy it")};
+      if(state.downloads){state.downloads.save({filename:"client-hunter-ledger-"+new Date().toISOString().slice(0,10)+".json",data:text}).then(function(){toast("Exported")}).catch(finish)}
+      else finish();
+    }).catch(function(){toast("Export failed. Try again.")});
+  }
+  function doImport(text){
+    var out=$("importOut");
+    var data; try{data=JSON.parse(text)}catch(e){out.textContent="That isn’t valid JSON.";return}
+    if(!data||data.format!=="client-hunter-ledger"){out.textContent="This file isn’t a Client Hunter export.";return}
+    var ops=[];
+    (data.leads||[]).forEach(function(l){if(l&&l.id) ops.push(["leads/"+l.id,l])});
+    (data.runs||[]).forEach(function(r){if(r&&r.id) ops.push(["runs/"+r.id,r])});
+    (data.gates||[]).forEach(function(g){if(g&&g.id) ops.push(["gates/"+g.id,g])});
+    Object.keys(data.config||{}).forEach(function(k){ops.push(["config/"+k,data.config[k]])});
+    Object.keys(data.seen||{}).forEach(function(k){ops.push(["seen/"+k,data.seen[k]])});
+    var i=0, ok=0;
+    out.textContent="Importing "+ops.length+" records…";
+    (function next(){
+      if(i>=ops.length){out.textContent="Imported "+ok+" of "+ops.length+" records.";return}
+      var op=ops[i++];
+      try{ state.db.doc(op[0]).set(op[1]).then(function(){ok++;next()}).catch(function(e){if(e&&e.code==="quota_exceeded"){out.textContent="The ledger is full. Delete old leads or seen records, then import again.";return} next()}) }
+      catch(e){next()}
+    })();
+  }
+
+  document.addEventListener("click",function(e){
+    var t=e.target.closest("button, a"); if(!t) return;
+    if(t.dataset.view){setView(t.dataset.view);return}
+    if(t.dataset.filter){state.filter=t.dataset.filter;render();return}
+    if(t.dataset.tier){state.tiers[t.dataset.tier]=!state.tiers[t.dataset.tier];render();return}
+    if(t.dataset.open){openSheet(t.dataset.open);return}
+    if(t.id==="closeSheet"){closeSheet();return}
+    if(t.dataset.status){
+      var l=state.leads.find(function(x){return x.id===state.openId}); if(!l||l.status===t.dataset.status) return;
+      var hist=(l.status_history||[]).slice(); hist.push({status:t.dataset.status,at:new Date().toISOString()});
+      var patch={status:t.dataset.status,status_history:hist};
+      if(t.dataset.status==="contacted"&&!l.follow_up_at){var d=new Date(Date.now()+4*864e5);patch.follow_up_at=d.toISOString().slice(0,10)}
+      writeLead(l.id,patch);return;
+    }
+    if(t.dataset.copy){
+      var lead=state.leads.find(function(x){return x.id===state.openId}); var d=lead&&lead.drafts&&lead.drafts[t.dataset.copy];
+      if(!d) return; var text=(d.subject?("Subject: "+d.subject+"\n\n"):"")+d.text;
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast("Copied")}).catch(function(){toast("Select the text to copy it")})}
+      else toast("Select the text to copy it");
+      return;
+    }
+    if(t.dataset.gate){
+      if(!state.db) return;
+      state.db.doc("gates/"+t.dataset.gate).update({status:t.dataset.answer==="dismiss"?"dismissed":"answered",answer:t.dataset.answer,answer_command:t.dataset.command||null,answered_at:new Date().toISOString()})
+        .then(function(){toast(t.dataset.answer==="dismiss"?"Dismissed":"Saved. Say “Client Hunter, run my decisions” to run it.")}).catch(function(){toast("Couldn’t save. Try again.")});
+      return;
+    }
+    if(t.id==="exportBtn"){doExport();return}
+    if(t.id==="importBtn"){doImport(($("importText")||{}).value||"");return}
+  });
+  $("sheetBack").addEventListener("click",closeSheet);
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&state.openId) closeSheet()});
+  document.addEventListener("input",function(e){if(e.target.id==="q"){state.q=e.target.value;var pos=e.target.selectionStart;renderLeads();var q=$("q");if(q){q.focus();try{q.setSelectionRange(pos,pos)}catch(_){}}}});
+  document.addEventListener("change",function(e){
+    var id=state.openId;
+    if(e.target.id==="fu"&&id) writeLead(id,{follow_up_at:e.target.value||null});
+    if(e.target.id==="val"&&id) writeLead(id,{outcome_value:e.target.value===""?null:Number(e.target.value)});
+    if(e.target.id==="notes"&&id) writeLead(id,{notes:e.target.value});
+    if(e.target.id==="importFile"&&e.target.files&&e.target.files[0]){var r=new FileReader();r.onload=function(){doImport(String(r.result))};r.readAsText(e.target.files[0])}
+  });
+
+  function start(){
+    var timer=setTimeout(function(){var n=$("loading");if(n) n.textContent="Can’t reach the ledger yet. It will appear when the connection returns."},10000);
+    var cl=window.claude&&window.claude.use?window.claude:null;
+    if(!cl){clearTimeout(timer);main.innerHTML='<div class="empty"><strong>Open this page in Claude</strong>The ledger’s data lives in your Claude account and loads only inside Claude.</div>';return}
+    cl.use("downloads").then(function(d){state.downloads=d}).catch(function(){});
+    cl.use("user").then(function(u){state.user=u; if(u&&u.can){Promise.resolve(u.can("data.write")).then(function(c){if(c===false){state.writable=false;render()}}).catch(function(){})}}).catch(function(){});
+    cl.use("db").then(function(db){
+      if(!db){clearTimeout(timer);main.innerHTML='<div class="empty"><strong>Sign in to see your ledger</strong>This page shows its data only to its owner, signed in to Claude.</div>';return}
+      state.db=db;
+      var first=true;
+      function ready(){if(first){first=false;clearTimeout(timer);state.ready=true}render()}
+      function onErr(){clearTimeout(timer);var n=$("loading");if(n) n.textContent="The ledger stopped updating. Reload the page to reconnect."}
+      db.collection("leads").orderBy("found_at","desc").limit(800).onSnapshot(function(s){state.leads=s.docs.map(function(d){var x=d.data();x.id=x.id||d.id;return x});ready()},onErr);
+      db.collection("gates").where("status","in",["open","answered"]).limit(100).onSnapshot(function(s){state.gates=s.docs.map(function(d){var x=d.data();x.id=x.id||d.id;return x});render()},onErr);
+      db.collection("runs").orderBy("started_at","desc").limit(30).onSnapshot(function(s){state.runs=s.docs.map(function(d){var x=d.data();x.id=x.id||d.id;return x});render()},onErr);
+      db.doc("config/profile").onSnapshot(function(s){state.profile=s.exists?s.data():null;render()},onErr);
+      db.doc("config/grounds").onSnapshot(function(s){state.grounds=s.exists?s.data():null;render()},onErr);
+      db.doc("config/phrases").onSnapshot(function(s){state.phrases=s.exists?s.data():null;render()},onErr);
+    }).catch(function(){clearTimeout(timer);main.innerHTML='<div class="empty"><strong>The ledger couldn’t load</strong>Reload the page. If it keeps happening, ask Claude to check the Client Hunter Ledger.</div>'});
+  }
+  start();
+})();
+</script>
+</body>
+</html>

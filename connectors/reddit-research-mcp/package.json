@@ -1,0 +1,11 @@
+{
+  "name": "reddit-research-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local read-only Reddit research MCP: official Reddit RSS feeds + Arctic Shift archive. No credentials.",
+  "type": "module",
+  "main": "server.mjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1"
+  }
+}
